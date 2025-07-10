@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hriday Bikram Khand</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-white text-gray-900">
+  <div class="flex flex-col md:flex-row min-h-screen max-w-screen-xl mx-auto">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-1/4 p-6 border-r">
+      <div class="flex flex-col items-center text-center">
+        <img src="styles/GBwBE4a8_400x400.jpg" alt="Profile" class="w-32 h-32 rounded-full mb-4 border">
+        <h1 class="text-2xl font-mono font-semibold">Hriday<br>Bikram<br>Khand</h1>
+        <p class="text-gray-600 mt-2">Student</p>
+      </div>
+      <nav class="mt-8 space-y-2 text-center">
+        <a href="index.html" class="block hover:underline">whoami</a>
+        <a href="lab.html" class="block hover:underline">notes</a>
+      </nav>
+    </aside>
+     <main class="flex-1 flex items-start justify-start pl-16">
+  <div class="w-full max-w-2xl">
+    <header>
+      <h1 class="page-title text-4xl font-bold mb-6 text-gray-500"><strong>some notes i collected.</strong></h1>
+    </header>
+
+    <!-- Notes Section Start -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-2">1: XSS 101</h2>
+      <p class="mb-4 text-base text-gray-700">
+        When a vulnerable web application does not properly sanitize the input, a malicious user can inject extra JavaScript code in the input field, so once another user views the same page, they unknowingly execute the malicious code. XSS vulnerabilities are solely executed on the client-side and hence do not directly affect the back-end server.
+      </p>
+      <p class="mb-4 text-base text-gray-700">
+        XSS vulnerabilities can facilitate a wide range of attacks, which can be anything that can be executed through browser JavaScript code. A basic example of an XSS attack is having the target user unwittingly send their session cookie to the attacker's web server. Another example is having the target's browser execute API calls that lead to a malicious action, like changing the user's password to a password of the attacker's choosing. There are many other types of XSS attacks, from Bitcoin mining to displaying ads.
+
+As XSS attacks execute JavaScript code within the browser, they are limited to the browser's JS engine (i.e., V8 in Chrome). They cannot execute system-wide JavaScript code to do something like system-level code execution. In modern browsers, they are also limited to the same domain of the vulnerable website. Nevertheless, being able to execute JavaScript in a user's browser may still lead to a wide variety of attacks, as mentioned above. In addition to this, if a skilled researcher identifies a binary vulnerability in a web browser (e.g., a Heap overflow in Chrome), they can utilize an XSS vulnerability to execute a JavaScript exploit on the target's browser, which eventually breaks out of the browser's sandbox and executes code on the user's machine.    
+      </p>  
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-2">2: DOM XSS</h2>
+      <p class="mb-4 text-base text-gray-700">
+        The third and final type of XSS is another Non-Persistent type called DOM-based XSS. While reflected XSS sends the input data to the back-end server through HTTP requests, DOM XSS is completely processed on the client-side through JavaScript. DOM XSS occurs when JavaScript is used to change the page source through the Document Object Model (DOM).
+        We can run the server below to see an example of a web application vulnerable to DOM XSS. We can try adding a test item, and we see that the web application is similar to the To-Do List web applications we previously used.
+        However, if we open the Network tab in the Firefox Developer Tools, and re-add the test item, we would notice that no HTTP requests are being made.
+        We see that the input parameter in the URL is using a hashtag # for the item we added, which means that this is a client-side parameter that is completely processed on the browser. This indicates that the input is being processed at the client-side through JavaScript and never reaches the back-end; hence it is a DOM-based XSS.
+        Furthermore, if we look at the page source by hitting `[CTRL+U]`, we will notice that our test string is nowhere to be found. This is because the JavaScript code is updating the page when we click the Add button, which is after the page source is retrieved by our browser, hence the base page source will not show our input, and if we refresh the page, it will not be retained (i.e. Non-Persistent). We can still view the rendered page source with the Web Inspector tool by clicking <strong>`[CTRL+SHIFT+C]`</strong>
+      </p>
+        <p class="text-xl font-semibold mb-2">Source and Sink</p>
+            <p class="mb-4 text-base text-gray-700">
+                To further understand the nature of the DOM-based XSS vulnerability, we must understand the concept of the Source and Sink of the object displayed on the page. The Source is the JavaScript object that takes the user input, and it can be any input parameter like a URL parameter or an input field, as we saw above.
+                On the other hand, the Sink is the function that writes the user input to a DOM Object on the page. If the Sink function does not properly sanitize the user input, it would be vulnerable to an XSS attack. Some of the commonly used JavaScript functions to write to DOM objects are:   
+                <ul class="list-disc list-inside mb-4 text-base text-black-700">
+                    <li><code>document.write()</code></li>
+                    <li><code>DOM.innerHTML</code></li>
+                    <li><code>DOM.outerHTML</code></li>
+                </ul>
+                Furthermore, some of the jquery library functions that write to DOM objects are:
+                <ul class="list-disc list-inside mb-4 text-base text-black-700">
+                    <li><code>add()</code></li>
+                    <li><code>append()</code></li>
+                    <li><code>after()</code></li>
+                </ul>
+                If a sink function writes the exact input without any sanitization (like the above functions), and no other means of sanitization were used, then we know that the page should be vulnerable to XSS. We can take a look at the source code of the To-Do web application, and check script.js, and we will see that the Source is being taken from the task= parameter.
+                <pre class="bg-gray-100 rounded p-2 text-black-800 overflow-x-auto text-left">
+var pos = document.URL.indexOf("task=");
+var task = document.URL.substring(pos + 5, document.URL.length);
+</pre>
+            </p>
+            <p class="mb-4 text-base text-gray-700">
+             Right below these lines, we see that the page uses the innerHTML function to write the task variable in the todo DOM: 
+             <pre class="bg-gray-100 rounded p-2 text-black-800 overflow-x-auto text-left">
+document.getElementById("todo").innerHTML = "&lt;b&gt;Next Task:&lt;/b&gt; " + decodeURIComponent(task);
+</pre>  
+            </p>
+
+    </section>
+
+    <!-- Notes Section End -->
+
+  </div>
+</main>
+</body>
+</html>
